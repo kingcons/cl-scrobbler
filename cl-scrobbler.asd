@@ -10,5 +10,8 @@
                 :serial t
                 :components ((:file "package")
                              (:file "config")
+                             (:file "errors")
                              (:file "util")
-                             ))))
+                             (:file "cache")
+                             (:file "auth")
+                             (:file "scrobble")))))

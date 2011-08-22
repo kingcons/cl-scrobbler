@@ -3,6 +3,9 @@ WRITE IT!
 -- Should have a condition for incorrect username+password
 -- Should cache when network connectivity is absent and scrobble later.
 ---- Cache location should be configurable, obviously. :)
+Right now the api-key is read at compile-time. We really want the symbol.
+-- User shouldn't have to load api-keys and recompile!
+-- Can we fix this by having make-signature handle quoted symbols?
 We should really add Submission Protocol 2.0 support at some point...
 Use cl-store to handle session and possibly api key+secret.
 Cleanup style + docstrings.
