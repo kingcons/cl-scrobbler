@@ -97,20 +97,19 @@ status code to STATUS and the headers to HEADERS, then BODY is executed in this
 context. Note that this macro is thus unhygienic. AUTH determines whether a
 session key is also sent. DOCS is used to supply a docstring and TYPE and METHOD
 are passed on to lastfm-call to modify the request URI and HTTP method."
-  (let ((defaults `(("api_key" . ,*api-key*)
-                    ("method" . ,name)))
-        (fn-label (frob-method-name name))
-        (sig (gensym)))
-    (when auth
-      (setf defaults (append `(("sk" . ,*session-key*)) defaults)))
+  (let ((fn-label (frob-method-name name))
+        (sig (gensym))
+        (defaults `(("api_key" . ,*api-key*)
+                    ("method" . ,name)
+                    ,@(when auth `(("sk" . ,*session-key*))))))
     `(defun ,fn-label ,params
        ,@(when docs (list docs))
        (let* ((params ,(if params
-                           `(append ',defaults ,@params)
-                           `(append ',defaults nil)))
+                           `(append ,defaults ,@params)
+                           `,defaults))
               (,sig (make-signature params)))
          (multiple-value-bind (response status headers)
              (lastfm-call (append params `(("api_sig" . ,,sig)))
                           :method ,method :type ,type)
            (let ((result ,@body))
-             (values result status headers)))))))
+             (values result status headers response)))))))
