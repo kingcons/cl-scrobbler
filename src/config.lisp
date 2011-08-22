@@ -1,8 +1,9 @@
 (in-package :cl-scrobbler)
 
-; All queryparams should be utf-8 encoded.
+;; All queryparams should be utf-8 encoded.
 (setf drakma:*drakma-default-external-format* :utf-8)
-;;; tell Drakma to handle JSON as strings
+;
+; tell Drakma to handle JSON as strings
 (pushnew '("application" . "json") drakma:*text-content-types*
          :test (lambda (x y)
                  (and (equalp (car x) (car y))

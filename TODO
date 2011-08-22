@@ -5,10 +5,13 @@ WRITE IT!
 ---- Cache location should be configurable, obviously. :)
 We should really add Submission Protocol 2.0 support at some point...
 Use cl-store to handle session and possibly api key+secret.
+Cleanup style + docstrings.
+Write tests!
 
 Ideas:
 Add conditions/error-handling for:
 -- get-api-keys, request-user-auth, lastfm-call
+-- handshake catch for: banned, badauth, badtime, failed
 Add a keyarg to get-api-keys to read input from the user and save it to a file.
 Trim down or consolidate the globals in config some.
 Overhaul the Request Authorization from User process...

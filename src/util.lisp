@@ -3,6 +3,33 @@
 
 ;;;; General Utilities
 
+;; Oh, On Lisp. You do have some fun macrology tools...
+(defun mkstr (&rest args)
+  (with-output-to-string (s)
+    (dolist (a args) (princ a s))))
+
+(defun symb (&rest args)
+  (values (intern (apply #'mkstr args))))
+
+(defun ksymb (&rest args)
+  (values (intern (apply #'mkstr args) :keyword)))
+
+;; This code happily stolen and adapted from Paktahn. Thanks Leslie!
+(defun simplified-camel-case-to-lisp (camel-string)
+  "Lispify camelCase or CamelCase strings to camel-case."
+  (declare (string camel-string))
+  (with-output-to-string (result)
+    (loop for c across camel-string
+       with last-was-lowercase
+       when (and last-was-lowercase
+                 (upper-case-p c))
+       do (princ "-" result)
+       if (lower-case-p c)
+       do (setf last-was-lowercase t)
+       else
+       do (setf last-was-lowercase nil)
+       do (princ (char-upcase c) result))))
+
 ;; This code stolen and adapted from local-time. Hooray local-time!
 (defun unix-timestamp ()
   "Cross-implementation abstraction to get the current time measured from the
@@ -32,6 +59,26 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
   (format nil "~(~{~2,'0X~}~)"
           (map 'list #'identity (md5:md5sum-sequence string))))
 
+
+;;;; Last.fm-specific utilities, macrology, etc
+
+(defun frob-method-name (string)
+  "Lispify Last.fm method names. i.e. auth.getToken -> get-token"
+  ;; Note that if we intended to support the entire Last.fm API
+  ;; discarding the namespace in this fashion would be undesirable,
+  ;; unless we intended to use CLOS and EQL-specialized methods or similar.
+  (let* ((namespace (position #\. string))
+         (name (and namespace (subseq string (1+ namespace)))))
+    (unless name
+      (error "Couldn't parse name. Are you sure it's a valid Last.fm call?"))
+    (symb (simplified-camel-case-to-lisp name))))
+
+(defun make-signature (params)
+  "Construct an API method signature from PARAMS."
+  (let ((ordered (loop for (name . value) in (sort params #'string< :key #'car)
+                    collecting (concatenate 'string name value))))
+    (md5sum (apply #'concatenate 'string (append ordered `(,*api-secret*))))))
+
 (defun lastfm-call (params &key (type :api) (method :get))
   "Make an HTTP request to the URL denoted by TYPE with the specified METHOD
 and PARAMS. PARAMS should be a list of dotted pairs."
@@ -41,87 +88,29 @@ and PARAMS. PARAMS should be a list of dotted pairs."
     (drakma:http-request base-uri :method method
                          :parameters (append '(("format" . "json")) params))))
 
-
-;;;; User Authentication - http://www.last.fm/api/authentication
-;;;; For now, we only support Desktop Auth. http://www.last.fm/api/desktopauth
-
-;;; Call signing
-
-(defun make-signature (params)
-  "Construct an API method signature from PARAMS."
-  (let ((ordered (loop for (name . value) in (sort params #'string< :key #'car)
-                    collecting (concatenate 'string name value))))
-    (md5sum (apply #'concatenate 'string (append ordered `(,*api-secret*))))))
-
-;;; Request Tokens
-
-(defun get-unauthorized-token ()
-  "Get an Unauthorized Token for use in initiating an authenticated session."
-  (let* ((params `(("api_key" . ,*api-key*)
-                   ("method" . "auth.getToken")))
-         (sig (make-signature params))
-         (response (lastfm-call (append params `(("api_sig" . ,sig))))))
-    (getjso "token" (read-json response))))
-
-(defun request-user-auth (token)
-  "Ask the user to authorize the application."
-  (format t "Please visit the following link in your browser: ~
-http://www.last.fm/api/auth/?api_key=~a&token=~a" *api-key* token))
-
-;;; Authenticated Sessions
-
-(defun get-session (token)
-  (let* ((params `(("api_key" . ,*api-key*)
-                   ("method" . "auth.getSession")
-                   ("token" . ,token)))
-         (sig (make-signature params)))
-    (lastfm-call (append params `(("api_sig" . ,sig))))))
-
-;;; Putting it all together...
-
-(defun authorize-scrobbling ()
-  (let ((token (get-unauthorized-token)))
-    (request-user-auth token)
-    (loop until (yes-or-no-p "Have you authorized cl-scrobbler?")
-       do (request-user-auth token))
-    (let ((session (getjso "session" (read-json (get-session token)))))
-      (with-open-file (out (config-file "session") :direction :output
-                           :if-exists :supersede)
-        (loop for key in '("name" "key" "subscriber")
-           do (write-line (getjso key session) out))))))
-
-;;;; Submissions Protocol 1.2.1 - http://www.last.fm/api/submissions
-
-;;; Handshake
-
-(defun make-token (&key (type :web-service) (timestamp (unix-timestamp)))
-  "Construct a token for web service or standard authentication. Defaults to
-:web-service as :standard authentication may be deprecated in future versions."
-  (ecase type
-    (:web-service
-     (md5sum (format nil "~a~d" *api-secret* timestamp)))
-    (:standard
-     (md5sum (format nil "~a~d" (md5sum *password*) timestamp)))))
-
-(defun handshake ()
-  (let* ((timestamp (unix-timestamp))
-         (token (make-token :timestamp timestamp))
-         (response (lastfm-call `(("hs" "true")
-                                  ("p" ,*submission-protocol-version*)
-                                  ("c" ,*client-id*)
-                                  ("v" ,*client-version*)
-                                  ("u" ,*username*)
-                                  ("t" ,timestamp)
-                                  ("a" ,token)
-                                  ("api_key" ,*api-key*)
-                                  ("sk" ,*session-key*))
-                                :type :submission)))
-    ;; TODO!
-    ))
-
-
-;;;; SCRATCH
-
-(defun encode-args (args)
-  "Construct a querystring from ARGS which should be a list of pairs."
-  (string-downcase (format nil "?~{~{~a~^=~}~^&~}" args)))
+(defmacro defcall (name params
+                   (&key auth docs (type :api) (method :get))
+                   &body body)
+  "Define a function named by (FROB-METHOD-NAME NAME) which calls the API method
+named by NAME with the given PARAMS. The result is bound to RESPONSE, the HTTP
+status code to STATUS and the headers to HEADERS, then BODY is executed in this
+context. Note that this macro is thus unhygienic. AUTH determines whether a
+session key is also sent. DOCS is used to supply a docstring and TYPE and METHOD
+are passed on to lastfm-call to modify the request URI and HTTP method."
+  (let ((defaults `(("api_key" . ,*api-key*)
+                    ("method" . ,name)))
+        (fn-label (frob-method-name name))
+        (sig (gensym)))
+    (when auth
+      (setf defaults (append `(("sk" . ,*session-key*)) defaults)))
+    `(defun ,fn-label ,params
+       ,@(when docs (list docs))
+       (let* ((params ,(if params
+                           `(append ',defaults ,@params)
+                           `(append ',defaults nil)))
+              (,sig (make-signature params)))
+         (multiple-value-bind (response status headers)
+             (lastfm-call (append params `(("api_sig" . ,,sig)))
+                          :method ,method :type ,type)
+           (let ((result ,@body))
+             (values result status headers)))))))
