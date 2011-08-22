@@ -104,9 +104,9 @@ are passed on to lastfm-call to modify the request URI and HTTP method."
                     ,@(when auth `(("sk" . ,*session-key*))))))
     `(defun ,fn-label ,params
        ,@(when docs (list docs))
-       (let* ((params ,(if params
-                           `(append ,defaults ,@params)
-                           `,defaults))
+       (let* ((params ',(if params
+                            `(append ,defaults ,@params)
+                            `,defaults))
               (,sig (make-signature params)))
          (multiple-value-bind (response status headers)
              (lastfm-call (append params `(("api_sig" . ,,sig)))
