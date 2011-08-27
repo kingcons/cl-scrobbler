@@ -2,12 +2,8 @@ TODO:
 WRITE IT!
 -- Should have a condition for incorrect username+password
 -- Should cache when network connectivity is absent and scrobble later.
----- Cache location should be configurable, obviously. :)
-Right now the api-key is read at compile-time. We really want the symbol.
--- User shouldn't have to load api-keys and recompile!
--- Can we fix this by having make-signature handle quoted symbols?
 We should really add Submission Protocol 2.0 support at some point...
-Use cl-store to handle session and possibly api key+secret.
+Use cl-store to handle session, cache?
 Cleanup style + docstrings.
 Write tests!
 
@@ -15,17 +11,10 @@ Ideas:
 Add conditions/error-handling for:
 -- get-api-keys, request-user-auth, lastfm-call
 -- handshake catch for: banned, badauth, badtime, failed
-Add a keyarg to get-api-keys to read input from the user and save it to a file.
-Trim down or consolidate the globals in config some.
+-- use it in defcall
 Overhaul the Request Authorization from User process...
 -- Informing the user to open link X in their browser is simplest.
 -- Asking user to input their browser and opening the link for them is better.
 -- Performing `which firefox`, chrome, etc and presenting options is best?
-Support Mobile or Web Authentication in addition to DesktopAuth?
 Support XML in addition to JSON as a response format?
 
-Questions:
-Is there a good way to let people use cl-scrobbler without:
--- A) Requiring them to have their own API key+secret.
--- B) Requiring me to distribute my API key+secret.
--- Ideally, they would only need a last.fm user+pass.

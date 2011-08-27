@@ -59,6 +59,19 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
   (format nil "~(~{~2,'0X~}~)"
           (map 'list #'identity (md5:md5sum-sequence string))))
 
+(defun config-file (name)
+  "Return a pathname for NAME under *CONFIG-DIR*."
+  (merge-pathnames name *config-dir*))
+
+(defun get-session-key ()
+  "Attempt to retrieve session key from disk. If it is not present, authorize a
+new session with last.fm and store the key for future use."
+  (if (probe-file (config-file "session"))
+      (with-open-file (in (config-file "session"))
+        (read-line in nil)
+        (setf *session-key* (read-line in nil)))
+      (authorize-scrobbling)))
+
 
 ;;;; Last.fm-specific utilities, macrology, etc
 
@@ -82,34 +95,29 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
 (defun lastfm-call (params &key (type :api) (method :get))
   "Make an HTTP request to the URL denoted by TYPE with the specified METHOD
 and PARAMS. PARAMS should be a list of dotted pairs."
-  (let ((base-uri (ecase type
-                    (:api *api-url*)
-                    (:submission *submission-url*))))
-    (drakma:http-request base-uri :method method
-                         :parameters (append '(("format" . "json")) params))))
+  (drakma:http-request *api-url* :method method
+                       :parameters (append '(("format" . "json")) params)))
 
-(defmacro defcall (name params
-                   (&key auth docs (type :api) (method :get))
+(defmacro defcall (name parameters (&key docs (method :get))
                    &body body)
   "Define a function named by (FROB-METHOD-NAME NAME) which calls the API method
-named by NAME with the given PARAMS. The result is bound to RESPONSE, the HTTP
-status code to STATUS and the headers to HEADERS, then BODY is executed in this
-context. Note that this macro is thus unhygienic. AUTH determines whether a
-session key is also sent. DOCS is used to supply a docstring and TYPE and METHOD
-are passed on to lastfm-call to modify the request URI and HTTP method."
+named by NAME with the given PARAMETERS. The result is bound to RESPONSE, the
+HTTP status code to STATUS and the headers to HEADERS, then BODY is executed in
+this environment. Note that this macro is thus unhygienic. DOCS is used to
+supply a docstring and METHOD determines the HTTP method to use."
   (let ((fn-label (frob-method-name name))
         (sig (gensym))
+        (params (gensym))
         (defaults `(("api_key" . ,*api-key*)
-                    ("method" . ,name)
-                    ,@(when auth `(("sk" . ,*session-key*))))))
-    `(defun ,fn-label ,params
+                    ("method" . ,name))))
+    `(defun ,fn-label ,parameters
        ,@(when docs (list docs))
-       (let* ((params ',(if params
-                            `(append ,defaults ,@params)
-                            `,defaults))
-              (,sig (make-signature params)))
+       (let* ((,params ',(if parameters
+                             `(append ,defaults ,parameters)
+                             `,defaults))
+              (,sig (make-signature ,params)))
          (multiple-value-bind (response status headers)
-             (lastfm-call (append params `(("api_sig" . ,,sig)))
-                          :method ,method :type ,type)
+             (lastfm-call (append ,params `(("api_sig" . ,,sig)))
+                          :method ,method)
            (let ((result ,@body))
              (values result status headers response)))))))

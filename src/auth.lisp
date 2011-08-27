@@ -32,38 +32,12 @@ in a secure fashion as they generally have an infinite lifetime."))
       (with-open-file (out (config-file "session") :direction :output
                            :if-exists :supersede)
         (loop for key in '("name" "key" "subscriber")
-           do (write-line (getjso key session) out))))))
-
-
-;;;; Submissions Protocol 1.2.1 - http://www.last.fm/api/submissions
-
-;;; Handshake
-
-(defun make-token (&key (type :web-service) (timestamp (unix-timestamp)))
-  "Construct a token for web service or standard authentication. Defaults to
-:web-service as :standard authentication may be deprecated in future versions."
-  (ecase type
-    (:web-service
-     (md5sum (format nil "~a~d" *api-secret* timestamp)))
-    (:standard
-     (md5sum (format nil "~a~d" (md5sum *password*) timestamp)))))
-
-(defun handshake ()
-  (let* ((timestamp (unix-timestamp))
-         (token (make-token :timestamp timestamp))
-         (response (lastfm-call `(("hs" . "true")
-                                  ("p" . ,*submission-protocol-version*)
-                                  ("c" . ,*client-id*)
-                                  ("v" . ,*client-version*)
-                                  ("u" . ,*username*)
-                                  ("t" . ,(format nil "~d" timestamp))
-                                  ("a" . ,token)
-                                  ("api_key" . ,*api-key*)
-                                  ("sk" . ,*session-key*))
-                                :type :submission)))
-    response))
+           do (write-line (getjso key session) out)))
+      (setf *session-key* (getjso "key" session)))))
 
 
 ;;;; Submissions Protocol 2.0 - http://www.last.fm/api/scrobbling
+;;;; Protocol 1.2.1 not supported - http://www.last.fm/api/submissions
 
 ;;; Handshake
+
