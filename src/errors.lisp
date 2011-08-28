@@ -28,7 +28,39 @@
     (25 . "Radio Not Found - Radio station not found")
     (26 . "API Key Suspended - This application is not allowed to make requests to the web services")
     (27 . "Deprecated - This type of request is no longer supported")
-    (29 . "Rate Limit Exceded - Your IP has made too many requests in a short period, exceeding our API guidelines")))
+    (29 . "Rate Limit Exceded - Your IP has made too many requests in a short period, exceeding our API guidelines"))
+  "A list of Last.fm Error codes. Duh. From http://www.last.fm/api/errorcodes")
 
 (defun error-message (errcode)
-  (rest (nth errcode *error-codes*)))
+  "Retrieve the error message corresponding to the number ERRCODE."
+  (rest (nth (1- errcode) *error-codes*)))
+
+(defun add-log-entry (&rest args)
+  "Format ARGS and append the line to the cl-scrobbler log file, creating it
+if it does not exist."
+  (with-open-file (out (config-file "cl-scrobbler.log") :direction :output
+                       :if-does-not-exist :create :if-exists :append)
+    (write-line (apply #'format nil args))))
+
+(define-condition lastfm-server-error (error)
+  ((message :initarg :message :reader message)))
+
+(defun log-and-maybe-cache (&rest args)
+  "Use ADD-LOG-ENTRY to log ARGS to disk, then invoke the CACHE-IT restart."
+  (let ((restart (find-restart 'cache-it)))
+    (apply #'add-log-entry args)
+    (invoke-restart 'cache-it)))
+
+(defmacro with-logging (() &body body)
+  "Execute BODY in a handler-case such that network failure or any error message
+from the server API results in logging the error to disk via ADD-LOG-ENTRY."
+  `(handler-case (progn ,@body)
+     (usocket:socket-error ()
+       (log-and-maybe-cache "[~d]> Socket error connecting to last.fm."
+                            (unix-timestamp)))
+     (usocket:ns-condition ()
+       (log-and-maybe-cache "[~d]> DNS lookup error connecting to last.fm."
+                            (unix-timestamp)))
+     (lastfm-server-error (e)
+       (log-and-maybe-cache "[~d]> Last.fm Error: ~a"
+                            (unix-timestamp) (message e)))))

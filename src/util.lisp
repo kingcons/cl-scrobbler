@@ -78,15 +78,6 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
   "Return a pathname for NAME under *CONFIG-DIR*."
   (merge-pathnames name *config-dir*))
 
-(defun get-session-key ()
-  "Attempt to retrieve session key from disk. If it is not present, authorize a
-new session with last.fm and store the key for future use."
-  (if (probe-file (config-file "session"))
-      (with-open-file (in (config-file "session"))
-        (read-line in nil)
-        (setf *session-key* (read-line in nil)))
-      (authorize-scrobbling)))
-
 
 ;;;; Last.fm-specific utilities, macrology, etc
 
@@ -130,7 +121,7 @@ and PARAMS. PARAMS should be a list of dotted pairs."
 
 (defmacro defcall (name parameters (&key docs (method :get))
                    &body body)
-  "Define a function named by (FROB-METHOD-NAME NAME) which calls the API method
+  "Define a function named by (FROB-LASTFM-NAME NAME) which calls the API method
 named by NAME with the given PARAMETERS. The result is bound to RESPONSE, the
 HTTP status code to STATUS and the headers to HEADERS, then BODY is executed in
 this environment. Note that this macro is thus unhygienic. DOCS is used to
@@ -142,14 +133,20 @@ supply a docstring and METHOD determines the HTTP method to use."
                     ("method" . ,name))))
     `(defun ,fn-label ,parameters
        ,@(when docs (list docs))
-       (let* ((,params (append ,defaults
+       (let* ((,params (append ',defaults
                                (loop for sym in ',parameters
                                   for val in (list ,@parameters)
                                   if (listp val) append (make-param sym val)
                                   else collect (make-param sym val))))
               (,sig (make-signature ,params)))
-         (multiple-value-bind (response status headers)
-             (lastfm-call (append ,params `(("api_sig" . ,,sig)))
-                          :method ,method)
-           (let ((result ,@body))
-             (values result status headers response)))))))
+         (with-logging ()
+           (with-caching (,name (list ,@parameters))
+             (multiple-value-bind (response status headers)
+                 (lastfm-call (append ,params `(("api_sig" . ,,sig)))
+                              :method ,method)
+               (let ((json (read-json response))
+                     (result (progn ,@body)))
+                 (when (getjso "error" json)
+                   (error 'lastfm-server-error
+                          :message (error-message (getjso "error" json))))
+                 (values result status headers response)))))))))

@@ -1,12 +1,15 @@
 TODO:
 Write now-playing and scrobble support.
-Add caching.
-Use cl-store to handle session, cache?
-Add conditions + error-handling.
 Write tests!
-Defcall can't support optional args.
--- Not a priority but a "nice to have" later.
-
+Add a retry-scrobbles function that has a with-logging/with-cache in it?
+-- Library consumer shouldn't have to think about this.
+-- All we want them to do is give us a config-dir, try to restore the cache
+---- on init, if it exists, get a session for new users and fire off a thread
+---- (or some such) to scrobble new tracks and occasionally retry old ones.
+It would be nice to enforce chronological order on outgoing scrobbles.
+DEFCALL is cool but kind of intense. Are you trying too hard to be smart?
+-- Probably. Your monkey brain is weak. You'd be done by now otherwise. :)
+More conditions/error handling. See below.
 
 Ideas:
 Overhaul the Request Authorization from User process...
@@ -14,9 +17,10 @@ Overhaul the Request Authorization from User process...
 -- Asking user to input their browser and opening the link for them is better.
 -- Performing `which firefox`, chrome, etc and presenting options is best?
 Add conditions/error-handling for:
--- get-api-keys, request-user-auth, lastfm-call
--- handshake catch for: banned, badauth, badtime, failed
--- use it in defcall
--- Should have a condition for incorrect username+password
+-- get-api-keys, request-user-auth, lastfm-call, authorize-scrobbling
 -- Should cache when network connectivity is absent and scrobble later.
+-- use it in defcall
 Support XML in addition to JSON as a response format?
+Defcall can't support optional args.
+-- Not a priority but a "nice to have" later.
+At some point, we should support "switching users", i.e. auth a new session.
