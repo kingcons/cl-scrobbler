@@ -14,7 +14,8 @@
 (defun ksymb (&rest args)
   (values (intern (apply #'mkstr args) :keyword)))
 
-;; This code happily stolen and adapted from Paktahn. Thanks Leslie!
+;; This code happily stolen and adapted from Paktahn which stole it in turn
+;; from Henrik Hjelte's cl-json.
 (defun simplified-camel-case-to-lisp (camel-string)
   "Lispify camelCase or CamelCase strings to camel-case."
   (declare (string camel-string))
@@ -29,6 +30,20 @@
        else
        do (setf last-was-lowercase nil)
        do (princ (char-upcase c) result))))
+
+;; This code hastily written from scratch. NIH syndrome!
+(defun simplified-lisp-to-camel-case (lisp-string)
+  "This is a very naive lisp symbol to camel-case converter. It is not designed
+to be robust, merely to handle local variables in the typical lisp style."
+  (with-output-to-string (result)
+    (loop for char across (string-downcase lisp-string)
+       with capitalize-p
+       do (cond (capitalize-p
+                 (princ (char-upcase char) result)
+                 (setf capitalize-p nil))
+                ((char= #\- char)
+                 (setf capitalize-p t))
+                (t (princ char result))))))
 
 ;; This code stolen and adapted from local-time. Hooray local-time!
 (defun unix-timestamp ()
@@ -75,8 +90,8 @@ new session with last.fm and store the key for future use."
 
 ;;;; Last.fm-specific utilities, macrology, etc
 
-(defun frob-method-name (string)
-  "Lispify Last.fm method names. i.e. auth.getToken -> get-token"
+(defun frob-lastfm-name (string)
+  "Lispify Last.fm method names. i.e. \"auth.getToken\" -> 'get-token"
   ;; Note that if we intended to support the entire Last.fm API
   ;; discarding the namespace in this fashion would be undesirable,
   ;; unless we intended to use CLOS and EQL-specialized methods or similar.
@@ -85,6 +100,21 @@ new session with last.fm and store the key for future use."
     (unless name
       (error "Couldn't parse name. Are you sure it's a valid Last.fm call?"))
     (symb (simplified-camel-case-to-lisp name))))
+
+(defun frob-symbol (symb)
+  "camelCase Lisp symbols. i.e. 'frob-lisp-symbol -> \"frobLispSymbol\""
+  (let ((name (symbol-name symb)))
+    (simplified-lisp-to-camel-case name)))
+
+(defun make-param (sym val)
+  "Return a cons, or list of conses if VAL is a list, suitable for use as a POST
+parameter or GET queryparam in a last.fm call. SYM is converted to a camelCase
+string and, if VAL is a list, append C-style array indices to SYM."
+  (typecase val
+    (list (loop for i from 0 to (length val)
+             collecting (cons (format nil "~a[~d]" (frob-symbol sym) i)
+                              (nth i val))))
+    (string (cons (frob-symbol sym) val))))
 
 (defun make-signature (params)
   "Construct an API method signature from PARAMS."
@@ -105,16 +135,18 @@ named by NAME with the given PARAMETERS. The result is bound to RESPONSE, the
 HTTP status code to STATUS and the headers to HEADERS, then BODY is executed in
 this environment. Note that this macro is thus unhygienic. DOCS is used to
 supply a docstring and METHOD determines the HTTP method to use."
-  (let ((fn-label (frob-method-name name))
+  (let ((fn-label (frob-lastfm-name name))
         (sig (gensym))
         (params (gensym))
         (defaults `(("api_key" . ,*api-key*)
                     ("method" . ,name))))
     `(defun ,fn-label ,parameters
        ,@(when docs (list docs))
-       (let* ((,params ',(if parameters
-                             `(append ,defaults ,parameters)
-                             `,defaults))
+       (let* ((,params (append ,defaults
+                               (loop for sym in ',parameters
+                                  for val in (list ,@parameters)
+                                  if (listp val) append (make-param sym val)
+                                  else collect (make-param sym val))))
               (,sig (make-signature ,params)))
          (multiple-value-bind (response status headers)
              (lastfm-call (append ,params `(("api_sig" . ,,sig)))

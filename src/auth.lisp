@@ -34,10 +34,3 @@ in a secure fashion as they generally have an infinite lifetime."))
         (loop for key in '("name" "key" "subscriber")
            do (write-line (getjso key session) out)))
       (setf *session-key* (getjso "key" session)))))
-
-
-;;;; Submissions Protocol 2.0 - http://www.last.fm/api/scrobbling
-;;;; Protocol 1.2.1 not supported - http://www.last.fm/api/submissions
-
-;;; Handshake
-

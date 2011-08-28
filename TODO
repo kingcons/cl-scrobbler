@@ -1,20 +1,22 @@
 TODO:
-WRITE IT!
--- Should have a condition for incorrect username+password
--- Should cache when network connectivity is absent and scrobble later.
-We should really add Submission Protocol 2.0 support at some point...
+Write now-playing and scrobble support.
+Add caching.
 Use cl-store to handle session, cache?
-Cleanup style + docstrings.
+Add conditions + error-handling.
 Write tests!
+Defcall can't support optional args.
+-- Not a priority but a "nice to have" later.
+
 
 Ideas:
-Add conditions/error-handling for:
--- get-api-keys, request-user-auth, lastfm-call
--- handshake catch for: banned, badauth, badtime, failed
--- use it in defcall
 Overhaul the Request Authorization from User process...
 -- Informing the user to open link X in their browser is simplest.
 -- Asking user to input their browser and opening the link for them is better.
 -- Performing `which firefox`, chrome, etc and presenting options is best?
+Add conditions/error-handling for:
+-- get-api-keys, request-user-auth, lastfm-call
+-- handshake catch for: banned, badauth, badtime, failed
+-- use it in defcall
+-- Should have a condition for incorrect username+password
+-- Should cache when network connectivity is absent and scrobble later.
 Support XML in addition to JSON as a response format?
-
