@@ -3,10 +3,8 @@
   (:import-from #:st-json #:read-json
                           #:getjso)
   (:export #:*config-dir*
-           #:*scrobble-cache*
+           #:cache-contents
            #:restore-cache
            #:get-session-key
            #:valid-scrobble-p
-           #:update-now-playing
-           #:scrobble))
-
+           #:queue-scrobble))

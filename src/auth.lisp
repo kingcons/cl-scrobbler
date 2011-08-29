@@ -32,7 +32,8 @@ a binary file and setting the *SESSION-KEY* global on success."
        do (request-user-auth token))
     (let ((session (getjso "session" (read-json (get-session token)))))
       (with-open-file (out (config-file "session") :direction :output
-                           :if-exists :supersede :if-does-not-exist :create)
+                           :if-exists :supersede :if-does-not-exist :create
+                           :element-type '(unsigned-byte 8))
         (cl-store:store (mapcar (lambda (key)
                                   (getjso key session))
                                 '("name" "key" "subscriber")) out))
@@ -42,6 +43,7 @@ a binary file and setting the *SESSION-KEY* global on success."
   "Attempt to retrieve session key from disk. If it is not present, authorize
 a new session with last.fm and store the key for future use."
   (if (probe-file (config-file "session"))
-      (with-open-file (in (config-file "session"))
+      (with-open-file (in (config-file "session")
+                          :element-type '(unsigned-byte 8)))
         (setf *session-key* (second (cl-store:restore in))))
       (authorize-scrobbling)))
