@@ -1,5 +1,6 @@
 (in-package :cl-scrobbler)
 
+
 ;;;; Library Configuration
 
 ;; All queryparams should be utf-8 encoded.

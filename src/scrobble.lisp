@@ -14,7 +14,8 @@ which has been played for over half its length OR 4 minutes."
   (:method :post :docs "Update the Now Playing status on last.fm."))
 
 (defcall "track.scrobble" (track timestamp artist sk)
-  (:method :post :docs "Scrobble the track!"))
+  (:method :post :docs "Scrobble the track!")
+  (getjso "scrobbles" json))
 
 (defun queue-scrobble (track artist timestamp &key now-playing-p)
   "Add a song to the queue to be scrobbled. If there is a network failure, the

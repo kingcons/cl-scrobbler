@@ -8,7 +8,7 @@
 
 (defcall "auth.getToken" ()
   (:docs "Get an Unauthorized Token for initiating an authenticated session.")
-  (getjso "token" (read-json response)))
+  (getjso "token" json))
 
 (defun request-user-auth (token)
   "Ask the user to authorize cl-scrobbler to submit songs."
@@ -44,6 +44,6 @@ a binary file and setting the *SESSION-KEY* global on success."
 a new session with last.fm and store the key for future use."
   (if (probe-file (config-file "session"))
       (with-open-file (in (config-file "session")
-                          :element-type '(unsigned-byte 8)))
+                          :element-type '(unsigned-byte 8))
         (setf *session-key* (second (cl-store:restore in))))
       (authorize-scrobbling)))

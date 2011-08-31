@@ -1,5 +1,8 @@
 (in-package :cl-scrobbler)
 
+
+;;;; Last.fm error codes, conditions and logging
+
 (defvar *error-codes*
   '((1 . "This error does not exist")
     (2 . "Invalid Service - This service does not exist")
@@ -38,29 +41,23 @@
 (defun add-log-entry (&rest args)
   "Format ARGS and append the line to the cl-scrobbler log file, creating it
 if it does not exist."
-  (with-open-file (out (config-file "cl-scrobbler.log") :direction :output
+  (with-open-file (out (config-file "scrobbler-errors.log") :direction :output
                        :if-does-not-exist :create :if-exists :append)
-    (write-line (apply #'format nil args))))
+    (write-line (apply #'format nil args) out)))
 
 (define-condition lastfm-server-error (error)
   ((message :initarg :message :reader message)))
-
-(defun log-and-maybe-cache (&rest args)
-  "Use ADD-LOG-ENTRY to log ARGS to disk, then invoke the CACHE-IT restart."
-  (let ((restart (find-restart 'cache-it)))
-    (apply #'add-log-entry args)
-    (invoke-restart 'cache-it)))
 
 (defmacro with-logging (() &body body)
   "Execute BODY in a handler-case such that network failure or any error message
 from the server API results in logging the error to disk via ADD-LOG-ENTRY."
   `(handler-case (progn ,@body)
      (usocket:socket-error ()
-       (log-and-maybe-cache "[~d]> Socket error connecting to last.fm."
-                            (unix-timestamp)))
+       (add-log-entry "[~d]> Socket error connecting to last.fm."
+                      (unix-timestamp)))
      (usocket:ns-condition ()
-       (log-and-maybe-cache "[~d]> DNS lookup error connecting to last.fm."
-                            (unix-timestamp)))
+       (add-log-entry "[~d]> DNS lookup error connecting to last.fm."
+                      (unix-timestamp)))
      (lastfm-server-error (e)
-       (log-and-maybe-cache "[~d]> Last.fm Error: ~a"
-                            (unix-timestamp) (message e)))))
+       (add-log-entry "[~d]> Last.fm Error: ~a"
+                      (unix-timestamp) (message e)))))
