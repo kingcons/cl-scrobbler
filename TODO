@@ -1,25 +1,23 @@
 TODO:
-Write now-playing and scrobble support.
 Write tests!
 Add a retry-scrobbles function that has a with-logging/with-cache in it?
 -- Library consumer shouldn't have to think about this.
 -- All we want them to do is give us a config-dir, try to restore the cache
 ---- on init, if it exists, get a session for new users and fire off a thread
 ---- (or some such) to scrobble new tracks and occasionally retry old ones.
-It would be nice to enforce chronological order on outgoing scrobbles.
-DEFCALL is cool but kind of intense. Are you trying too hard to be smart?
--- Probably. Your monkey brain is weak. You'd be done by now otherwise. :)
 More conditions/error handling. See below.
+Scrobbling with a UNIX-TIMESTAMP demonstrates a bug in logging, specifically ADD-LOG-ENTRY.
+Also, cleanup maybe-enqueue-scrobble. Esp. braindead *session-key* usage...
+Improve get-session-key for new users.
+Ensure that error codes 9 (bad session) is specially handled.
+Ensure that error codes other than 9,11,16 do not result in resent scrobbles?
+-- Last.fm seems to suggest other errors indicate malformed requests.
+Move the bordeaux-threads make-thread call *into* scrobbler-init?
 
 Ideas:
-Overhaul the Request Authorization from User process...
--- Informing the user to open link X in their browser is simplest.
--- Asking user to input their browser and opening the link for them is better.
--- Performing `which firefox`, chrome, etc and presenting options is best?
 Add conditions/error-handling for:
 -- get-api-keys, request-user-auth, lastfm-call, authorize-scrobbling
--- Should cache when network connectivity is absent and scrobble later.
--- use it in defcall
+-- If an API call fails because we lack a valid session, kick off authorize!
 Support XML in addition to JSON as a response format?
 Defcall can't support optional args.
 -- Not a priority but a "nice to have" later.

@@ -147,9 +147,9 @@ supply a docstring and METHOD determines the HTTP method to use."
            (multiple-value-bind (response status headers)
                (lastfm-call (append ,params `(("api_sig" . ,,sig)))
                             :method ,method)
-             (let ((json (read-json response))
-                   (result (progn ,@body)))
-               (when (getjso "error" json)
+               (when (getjso "error" (read-json response))
                  (error 'lastfm-server-error
                         :message (error-message (getjso "error" json))))
-               (values result status headers response))))))))
+               (let ((json (read-json response))
+                     (result (progn ,@body)))
+                 (values result status headers response))))))))
