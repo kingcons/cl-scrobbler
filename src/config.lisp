@@ -25,3 +25,14 @@
   "The directory to store the session key, scrobble cache and log in.")
 (defparameter *session-key* ""
   "The session key used to authenticate calls to last.fm.")
+
+;;;; Cl-Scrobbler Configuration
+(defvar *scrobble-count* 5
+  "The number of songs needed in the queue before an attempt to scrobble is
+made.")
+
+(defvar *scrobble-p* nil
+  "This variable is checked to determine whether the plugin is enabled.")
+
+(defvar *now-playing-p* nil
+  "This variable determines whether the user's now playing status is updated.")

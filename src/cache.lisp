@@ -21,6 +21,9 @@
 
 (defun add-to-cache (scrobble)
   "Add the attempted SCROBBLE to the cache and serialize it to disk."
+  (with-open-file (out (config-file "debug") :direction :output
+                       :if-exists :append :if-does-not-exist :create)
+    (format out "Attempting to add ~a to cache ~a~%~%" scrobble *scrobble-cache*))
   (enqueue *scrobble-cache* scrobble)
   (persist-cache))
 

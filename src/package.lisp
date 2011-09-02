@@ -3,12 +3,13 @@
   (:import-from #:st-json #:read-json
                           #:getjso)
   (:export #:*config-dir*
-           #:*track-info-fn*
-           #:*track-time-fn*
+           #:*song-info-fn*
+           #:*song-time-fn*
            #:*scrobble-p*
            #:*scrobble-count*
            #:*now-playing-p*
-           #:set-last-seek
+           #:update-last-seek
+           #:update-song-info
            #:maybe-queue-scrobble
            #:scrobbler-init
            #:cache-contents))
