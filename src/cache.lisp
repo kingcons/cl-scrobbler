@@ -1,11 +1,11 @@
 (in-package :cl-scrobbler)
 
-(defvar *scrobble-cache* (make-queue)
+(defvar *scrobble-cache* (make-instance 'queue)
   "A queue of cached scrobbles to send when last.fm is available.")
 
 (defun cache-contents ()
   "Get a copy of the contents of the *SCROBBLE-CACHE*."
-  (loop for song in (queue-elements *scrobble-cache*) collecting song))
+  (queue->list *scrobble-cache*))
 
 (defun persist-cache ()
   "Persist the cache to disk."
@@ -31,4 +31,3 @@
   "Remove the last scrobble from the queue and persist it."
   (dequeue *scrobble-cache*)
   (persist-cache))
-

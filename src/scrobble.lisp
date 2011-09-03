@@ -66,8 +66,8 @@ set the user's now playing status."
 (defun attempt-scrobble ()
   "Peek at *SCROBBLE-CACHE* and attempt to scrobble the next song. If
 successful, remove the song from the cache and persist it to disk."
-  (let ((song (queue-front *scrobble-cache*))
-        (result (apply #'scrobble song)))
+  (let* ((song (peek-queue *scrobble-cache*))
+         (result (apply #'scrobble song)))
     (when result
       (remove-from-cache))))
 
@@ -82,7 +82,8 @@ Consult the docs..."))
   (get-session-key)
   (loop
      ;; TODO: Probably want some HANDLER-CASE magic here...
-     (loop while (> (length (queue-elements *scrobble-cache*))
-                    *scrobble-count*)
-        do (attempt-scrobble))
+     (when (and *scrobble-p* (>= (queue-count *scrobble-cache*)
+                                 *scrobble-count))
+       (loop until (queue-empty-p *scrobble-cache*)
+          do (attempt-scrobble)))
      (sleep 300)))
