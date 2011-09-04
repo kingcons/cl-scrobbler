@@ -10,6 +10,7 @@
            #:*now-playing-p*
            #:update-last-seek
            #:update-song-info
+           #:update-skipped
            #:maybe-queue-scrobble
            #:scrobbler-init
            #:cache-contents))

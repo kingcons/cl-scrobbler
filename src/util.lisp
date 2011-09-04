@@ -69,10 +69,6 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
              #.(encode-universal-time 0 0 0 1 1 1970 0))
           0))
 
-(defun timestamp ()
-  "Get the current unix timestamp as a string."
-  (format nil "~d" (unix-timestamp)))
-
 (defun md5sum (string)
   "Creates an MD5 byte-array of STRING and prints it as lower-case hexadecimal."
   (format nil "~(~{~2,'0X~}~)"
@@ -145,11 +141,11 @@ supply a docstring and METHOD determines the HTTP method to use."
               (,sig (make-signature ,params)))
          (with-logging ()
            (multiple-value-bind (response status headers)
-               (lastfm-call (append ,params `(("api_sig" . ,,sig)))
-                            :method ,method)
-               (when (getjso "error" (read-json response))
+             (lastfm-call (append ,params `(("api_sig" . ,,sig)))
+                          :method ,method)
+             (let* ((json (read-json response))
+                    (result (progn ,@body)))
+               (when (getjso "error" json)
                  (error 'lastfm-server-error
                         :message (error-message (getjso "error" json))))
-               (let ((json (read-json response))
-                     (result (progn ,@body)))
-                 (values result status headers response))))))))
+               (values result status headers response))))))))
