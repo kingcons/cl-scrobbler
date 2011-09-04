@@ -75,7 +75,8 @@ set the user's now playing status."
 successful, remove the song from the cache and persist it to disk."
   (let* ((song (peek-queue *scrobble-cache*))
          (result (apply #'scrobble song *session-key*)))
-    (when result
+    ;; Did we get JSON or did we get a logged error?
+    (when (typep result 'st-json:jso)
       (remove-from-cache))))
 
 (defun scrobbler-init ()

@@ -20,7 +20,7 @@
     (setf *scrobble-cache* (cl-store:restore in))))
 
 (defun add-to-cache (scrobble)
-  "Add the attempted SCROBBLE to the cache and serialize it to disk."
+  "Add the SCROBBLE to the cache and serialize it to disk."
   (enqueue *scrobble-cache* scrobble)
   (persist-cache))
 
