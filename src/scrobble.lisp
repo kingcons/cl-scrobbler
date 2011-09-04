@@ -49,10 +49,10 @@ set the user's now playing status."
   (let ((valid-p (and *song-info* (valid-scrobble-p)))
         (track (first *song-info*))
         (artist (second *song-info*)))
-    (when valid-p
+    (when (and *scrobble-p* valid-p)
       (when *now-playing-p*
         (update-now-playing track artist *session-key*))
-      (add-to-cache (list track (fourth *song-info*) artist *session-key*)))
+      (add-to-cache (list track (fourth *song-info*) artist)))
     (setf *song-info* nil
           *skipped* nil
           *last-seek* 0)))
@@ -74,7 +74,7 @@ set the user's now playing status."
   "Peek at *SCROBBLE-CACHE* and attempt to scrobble the next song. If
 successful, remove the song from the cache and persist it to disk."
   (let* ((song (peek-queue *scrobble-cache*))
-         (result (apply #'scrobble song)))
+         (result (apply #'scrobble song *session-key*)))
     (when result
       (remove-from-cache))))
 
@@ -89,8 +89,7 @@ Consult the docs..."))
   (get-session-key)
   (loop
      ;; TODO: Probably want some HANDLER-CASE magic here...
-     (when (and *scrobble-p* (>= (queue-count *scrobble-cache*)
-                                 *scrobble-count*))
+     (when (>= (queue-count *scrobble-cache*) *scrobble-count*)
        (loop until (queue-empty-p *scrobble-cache*)
           do (attempt-scrobble)))
      (sleep 120)))
