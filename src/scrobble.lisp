@@ -74,10 +74,11 @@ set the user's now playing status."
   "Peek at *SCROBBLE-CACHE* and attempt to scrobble the next song. If
 successful, remove the song from the cache and persist it to disk."
   (let* ((song (peek-queue *scrobble-cache*))
-         (result (apply #'scrobble song *session-key*)))
+         (result (apply #'scrobble (append song (list *session-key*)))))
     ;; Did we get JSON or did we get a logged error?
-    (when (typep result 'st-json:jso)
-      (remove-from-cache))))
+    (if (typep result 'st-json:jso)
+        (remove-from-cache)
+        (error 'network-outage))))
 
 (defun scrobbler-init ()
   "Loop indefinitely, scrobbling as many songs as possible unless the network
@@ -89,8 +90,8 @@ Consult the docs..."))
     (restore-cache))
   (get-session-key)
   (loop
-     ;; TODO: Probably want some HANDLER-CASE magic here...
      (when (>= (queue-count *scrobble-cache*) *scrobble-count*)
-       (loop until (queue-empty-p *scrobble-cache*)
-          do (attempt-scrobble)))
+       (handler-case (loop until (queue-empty-p *scrobble-cache*)
+                        do (attempt-scrobble))
+         (network-outage (e) nil)))
      (sleep 120)))

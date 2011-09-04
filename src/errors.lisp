@@ -48,6 +48,8 @@ if it does not exist."
 (define-condition lastfm-server-error (error)
   ((message :initarg :message :reader message)))
 
+(define-condition network-outage (error) ())
+
 (defmacro with-logging (() &body body)
   "Execute BODY in a handler-case such that network failure or any error message
 from the server API results in logging the error to disk via ADD-LOG-ENTRY."
