@@ -16,9 +16,8 @@ or Nil.")
 
 (defvar *song-info-fn* nil
   "This is a lambda or named function intended to take no arguments and return
-a list where the first element is the track name, the second is the artist, the
-third is the track length in seconds and the fourth is the timestamp from when
-it began playing.")
+a list where the first element is the track name, the second is the artist and
+the third is the track length in seconds.")
 
 (defvar *song-time-fn* nil
   "This is a lambda or named function intended to take no arguments and return
@@ -81,17 +80,21 @@ successful, remove the song from the cache and persist it to disk."
         (error 'network-outage))))
 
 (defun scrobbler-init ()
-  "Loop indefinitely, scrobbling as many songs as possible unless the network
-is unavailable. Then sleep until at least *SCROBBLE-COUNT* songs are queued."
+  "Ensure needed variables are set, restore the cache if present and restore
+or acquire a session key for scrobbling."
   (unless (and *song-info-fn* *song-time-fn*)
     (error "You need to define *song-time-fn* and *song-info-fn*! ~
 Consult the docs..."))
   (when (probe-file (config-file "cache"))
     (restore-cache))
-  (get-session-key)
+  (get-session-key))
+
+(defun scrobbler-loop ()
+  "Loop indefinitely, scrobbling as many songs as possible unless the network
+is unavailable. Then sleep until at least *SCROBBLE-COUNT* songs are queued."
   (loop
      (when (>= (queue-count *scrobble-cache*) *scrobble-count*)
        (handler-case (loop until (queue-empty-p *scrobble-cache*)
                         do (attempt-scrobble))
-         (network-outage (e) nil)))
+         (network-outage () nil)))
      (sleep 120)))

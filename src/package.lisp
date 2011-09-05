@@ -13,4 +13,5 @@
            #:update-skipped
            #:maybe-queue-scrobble
            #:scrobbler-init
+           #:scrobbler-loop
            #:cache-contents))
