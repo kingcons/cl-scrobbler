@@ -4,6 +4,7 @@
   :name "cl-scrobbler"
   :description "A library for scrobbling to last.fm"
   :version "0.1"
+  :license "BSD"
   :author "Brit Butler <redline6561@gmail.com>"
   :depends-on (#:md5 #:drakma #:st-json #:cl-store)
   :components ((:module src
