@@ -2,15 +2,24 @@
   (:use #:cl)
   (:import-from #:st-json #:read-json
                           #:getjso)
+  (:import-from #:arnesi #:queue
+                         #:peek-queue
+                         #:queue->list
+                         #:queue-count
+                         #:queue-empty-p
+                         #:enqueue
+                         #:dequeue)
   (:export #:*config-dir*
            #:*song-info-fn*
            #:*song-time-fn*
-           #:*scrobble-p*
            #:*scrobble-count*
            #:*now-playing-p*
            #:update-last-seek
            #:update-song-info
            #:update-skipped
+           #:update-now-playing
+           #:toggle-scrobbling
+           #:toggle-now-playing
            #:maybe-queue-scrobble
            #:scrobbler-init
            #:scrobbler-loop

@@ -6,12 +6,11 @@
   :version "0.1"
   :license "BSD"
   :author "Brit Butler <redline6561@gmail.com>"
-  :depends-on (#:md5 #:drakma #:st-json #:cl-store)
+  :depends-on (#:md5 #:drakma #:st-json #:cl-store #:arnesi)
   :components ((:module src
                 :serial t
                 :components ((:file "package")
                              (:file "config")
-                             (:file "queue")
                              (:file "cache")
                              (:file "errors")
                              (:file "util")

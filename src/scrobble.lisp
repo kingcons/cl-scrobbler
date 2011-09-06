@@ -49,12 +49,23 @@ set the user's now playing status."
         (track (first *song-info*))
         (artist (second *song-info*)))
     (when (and *scrobble-p* valid-p)
-      (when *now-playing-p*
-        (update-now-playing track artist *session-key*))
       (add-to-cache (list track (fourth *song-info*) artist)))
     (setf *song-info* nil
           *skipped* nil
           *last-seek* 0)))
+
+(defun toggle-scrobbling ()
+  (setf *scrobble-p* (not *scrobble-p*))
+  (format nil "Scrobbling is ~:[disabled~;enabled~]." *scrobble-p*))
+
+(defun toggle-now-playing ()
+  (setf *now-playing-p* (not *now-playing-p*))
+  (format nil "Now playing status updates are ~:[disabled~;enabled~]." *now-playing-p*))
+
+(defun update-now-playing ()
+  "Update the now playing status when *NOW-PLAYING-P* is non-NIL."
+  (when *now-playing-p*
+    (update-now-playing (first *song-info*) (second *song-info*) *session-key*)))
 
 (defun update-last-seek ()
   "Set *LAST-SEEK* to the current track position via *SONG-TIME-FN*."
