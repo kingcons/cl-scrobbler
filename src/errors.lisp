@@ -53,13 +53,17 @@ if it does not exist."
 (defmacro with-logging (() &body body)
   "Execute BODY in a handler-case such that network failure or any error message
 from the server API results in logging the error to disk via ADD-LOG-ENTRY."
-  `(handler-case (progn ,@body)
-     (usocket:socket-error ()
-       (add-log-entry "[~d]> Socket error connecting to last.fm."
-                      (unix-timestamp)))
-     (usocket:ns-condition ()
-       (add-log-entry "[~d]> DNS lookup error connecting to last.fm."
-                      (unix-timestamp)))
-     (lastfm-server-error (e)
-       (add-log-entry "[~d]> Last.fm Error: ~a"
-                      (unix-timestamp) (message e)))))
+  `(multiple-value-bind (second minute hour day month year)
+       (get-decoded-time)
+     (let ((timestamp (format nil "~2,'0d/~2,'0d/~d -- ~2,'0d:~2,'0d:~2,'0d"
+                              month day year hour minute second)))
+       (handler-case (progn ,@body)
+         (usocket:socket-error ()
+           (add-log-entry "[~a]> Socket error connecting to last.fm."
+                          timestamp))
+         (usocket:ns-condition ()
+           (add-log-entry "[~a]> DNS lookup error connecting to last.fm."
+                          timestamp))
+         (lastfm-server-error (e)
+           (add-log-entry "[~a]> Last.fm Error: ~a"
+                          timestamp (message e)))))))

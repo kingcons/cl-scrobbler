@@ -43,8 +43,7 @@ notion such that playtime must have occurred without seeking."
 (defun maybe-queue-scrobble ()
   "When valid (as determined by VALID-SCROBBLE-P), add a song to the queue to be
 scrobbled. If there is a network failure, the track will be stored for later
-scrobbling when a connection is reestablished. If *NOW-PLAYING-P* is set, also
-set the user's now playing status."
+scrobbling when a connection is reestablished."
   (let ((valid-p (and *song-info* (valid-scrobble-p)))
         (track (first *song-info*))
         (artist (second *song-info*)))
@@ -55,10 +54,12 @@ set the user's now playing status."
           *last-seek* 0)))
 
 (defun toggle-scrobbling ()
+  "Toggle whether or not new songs are added to the queue."
   (setf *scrobble-p* (not *scrobble-p*))
   (format nil "Scrobbling is ~:[disabled~;enabled~]." *scrobble-p*))
 
 (defun toggle-now-playing ()
+  "Toggle whether or not the Now Playing status is updated with each song."
   (setf *now-playing-p* (not *now-playing-p*))
   (format nil "Now playing status updates are ~:[disabled~;enabled~]." *now-playing-p*))
 
