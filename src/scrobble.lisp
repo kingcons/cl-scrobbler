@@ -63,7 +63,7 @@ scrobbling when a connection is reestablished."
   (setf *now-playing-p* (not *now-playing-p*))
   (format nil "Now playing status updates are ~:[disabled~;enabled~]." *now-playing-p*))
 
-(defun update-now-playing ()
+(defun set-now-playing ()
   "Update the now playing status when *NOW-PLAYING-P* is non-NIL."
   (when *now-playing-p*
     (update-now-playing (first *song-info*) (second *song-info*) *session-key*)))

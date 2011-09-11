@@ -17,7 +17,7 @@
            #:update-last-seek
            #:update-song-info
            #:update-skipped
-           #:update-now-playing
+           #:set-now-playing
            #:toggle-scrobbling
            #:toggle-now-playing
            #:maybe-queue-scrobble
