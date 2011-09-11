@@ -55,13 +55,11 @@ scrobbling when a connection is reestablished."
 
 (defun toggle-scrobbling ()
   "Toggle whether or not new songs are added to the queue."
-  (setf *scrobble-p* (not *scrobble-p*))
-  (format nil "Scrobbling is ~:[disabled~;enabled~]." *scrobble-p*))
+  (setf *scrobble-p* (not *scrobble-p*)))
 
 (defun toggle-now-playing ()
   "Toggle whether or not the Now Playing status is updated with each song."
-  (setf *now-playing-p* (not *now-playing-p*))
-  (format nil "Now playing status updates are ~:[disabled~;enabled~]." *now-playing-p*))
+  (setf *now-playing-p* (not *now-playing-p*)))
 
 (defun set-now-playing ()
   "Update the now playing status when *NOW-PLAYING-P* is non-NIL."
