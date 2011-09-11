@@ -36,3 +36,18 @@ made.")
 
 (defvar *now-playing-p* nil
   "This variable determines whether the user's now playing status is updated.")
+
+(defun save-settings ()
+  (with-open-file (out (config-file "settings")
+                       :element-type '(unsigned-byte 8)
+                       :direction :output :if-exists :supersede
+                       :if-does-not-exist :create)
+    (cl-store:store (list *scrobble-count* *scrobble-p* *now-playing-p*) out)))
+
+(defun restore-settings ()
+  (with-open-file (in (config-file "settings")
+                      :element-type '(unsigned-byte 8))
+    (destructuring-bind (count scrobble now-playing) (cl-store:restore in)
+      (setf *scrobble-count* count
+            *scrobble-p* scrobble
+            *now-playing-p* now-playing))))

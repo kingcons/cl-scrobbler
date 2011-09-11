@@ -55,11 +55,13 @@ scrobbling when a connection is reestablished."
 
 (defun toggle-scrobbling ()
   "Toggle whether or not new songs are added to the queue."
-  (setf *scrobble-p* (not *scrobble-p*)))
+  (prog1 (setf *scrobble-p* (not *scrobble-p*))
+    (save-settings)))
 
 (defun toggle-now-playing ()
   "Toggle whether or not the Now Playing status is updated with each song."
-  (setf *now-playing-p* (not *now-playing-p*)))
+  (prog1 (setf *now-playing-p* (not *now-playing-p*))
+    (save-settings)))
 
 (defun set-now-playing ()
   "Update the now playing status when *NOW-PLAYING-P* is non-NIL."
@@ -95,6 +97,8 @@ or acquire a session key for scrobbling."
   (unless (and *song-info-fn* *song-time-fn*)
     (error "You need to define *song-time-fn* and *song-info-fn*! ~
 Consult the docs..."))
+  (when (probe-file (config-file "settings"))
+    (restore-settings))
   (when (probe-file (config-file "cache"))
     (restore-cache))
   (get-session-key))
