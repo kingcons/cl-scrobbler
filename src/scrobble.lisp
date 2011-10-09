@@ -55,11 +55,15 @@ scrobbling when a connection is reestablished."
 
 (defun toggle-scrobbling ()
   "Toggle whether or not new songs are added to the queue."
+  (unless *session-key*
+    (get-session-key))
   (prog1 (setf *scrobble-p* (not *scrobble-p*))
     (save-settings)))
 
 (defun toggle-now-playing ()
   "Toggle whether or not the Now Playing status is updated with each song."
+  (unless *session-key*
+    (get-session-key))
   (prog1 (setf *now-playing-p* (not *now-playing-p*))
     (save-settings)))
 
@@ -101,7 +105,8 @@ Consult the docs..."))
     (restore-settings))
   (when (probe-file (config-file "cache"))
     (restore-cache))
-  (get-session-key))
+  (when (or *scrobble-p* *now-playing-p*)
+    (get-session-key)))
 
 (defun scrobbler-loop ()
   "Loop indefinitely, scrobbling as many songs as possible unless the network

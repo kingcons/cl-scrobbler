@@ -76,7 +76,9 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
 
 (defun config-file (name)
   "Return a pathname for NAME under *CONFIG-DIR*."
-  (merge-pathnames name *config-dir*))
+  (let ((result (merge-pathnames name *config-dir*)))
+    (ensure-directories-exist result)
+    result))
 
 
 ;;;; Last.fm-specific utilities, macrology, etc

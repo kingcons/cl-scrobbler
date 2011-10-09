@@ -23,7 +23,7 @@
 
 (defparameter *config-dir* ""
   "The directory to store the session key, scrobble cache and log in.")
-(defparameter *session-key* ""
+(defparameter *session-key* nil
   "The session key used to authenticate calls to last.fm.")
 
 ;;;; Cl-Scrobbler Configuration
