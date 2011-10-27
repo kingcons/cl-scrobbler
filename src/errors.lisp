@@ -48,11 +48,11 @@ if it does not exist."
 (define-condition lastfm-server-error (error)
   ((message :initarg :message :reader message)))
 
-(define-condition network-outage (error) ())
+(define-condition scrobble-error (error) ())
 
 (defmacro with-logging (() &body body)
   "Execute BODY in a handler-case such that network failure or any error message
-from the server API results in logging the error to disk via ADD-LOG-ENTRY."
+from the server results in logging the error to disk via ADD-LOG-ENTRY."
   `(multiple-value-bind (second minute hour day month year)
        (get-decoded-time)
      (let ((timestamp (format nil "~2,'0d/~2,'0d/~d -- ~2,'0d:~2,'0d:~2,'0d"

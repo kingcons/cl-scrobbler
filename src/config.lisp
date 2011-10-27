@@ -32,12 +32,14 @@
 made.")
 
 (defvar *scrobble-p* nil
-  "This variable is checked to determine whether the plugin is enabled.")
+  "This variable determines whether or not songs are added to the scrobble
+cache.")
 
 (defvar *now-playing-p* nil
   "This variable determines whether the user's now playing status is updated.")
 
 (defun save-settings ()
+  "Persist the *SCROBBLE-COUNT*, *SCROBBLE-P* and *NOW-PLAYING-P* settings."
   (with-open-file (out (config-file "settings")
                        :element-type '(unsigned-byte 8)
                        :direction :output :if-exists :supersede
@@ -45,6 +47,7 @@ made.")
     (cl-store:store (list *scrobble-count* *scrobble-p* *now-playing-p*) out)))
 
 (defun restore-settings ()
+  "Restore the *SCROBBLE-COUNT*, *SCROBBLE-P* and *NOW-PLAYING-P* variables."
   (with-open-file (in (config-file "settings")
                       :element-type '(unsigned-byte 8))
     (destructuring-bind (count scrobble now-playing) (cl-store:restore in)

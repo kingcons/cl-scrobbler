@@ -12,7 +12,7 @@ track.")
 
 (defvar *song-info* nil
   "A list of (track artist length timestamp) of type (string string int string)
-or Nil.")
+or NIL.")
 
 (defvar *song-info-fn* nil
   "This is a lambda or named function intended to take no arguments and return
@@ -24,7 +24,8 @@ the third is the track length in seconds.")
 the current position in the track in seconds.")
 
 (defcall "track.updateNowPlaying" (track artist sk)
-  (:method :post :docs "Update the Now Playing status on last.fm."))
+  (:method :post :docs "Update the Now Playing status on last.fm.")
+  (getjso "nowplaying" json))
 
 (defcall "track.scrobble" (track timestamp artist sk)
   (:method :post :docs "Scrobble the track!")
@@ -44,14 +45,12 @@ notion such that playtime must have occurred without seeking."
   "When valid (as determined by VALID-SCROBBLE-P), add a song to the queue to be
 scrobbled. If there is a network failure, the track will be stored for later
 scrobbling when a connection is reestablished."
-  (let ((valid-p (and *song-info* (valid-scrobble-p)))
-        (track (first *song-info*))
-        (artist (second *song-info*)))
-    (when (and *scrobble-p* valid-p)
-      (add-to-cache (list track (fourth *song-info*) artist)))
-    (setf *song-info* nil
-          *skipped* nil
-          *last-seek* 0)))
+  (when (and *scrobble-p* *song-info* (valid-scrobble-p))
+    (destructuring-bind (track artist length timestamp) *song-info*
+      (add-to-cache (list track timestamp artist))))
+  (setf *song-info* nil
+        *skipped* nil
+        *last-seek* 0))
 
 (defun toggle-scrobbling ()
   "Toggle whether or not new songs are added to the queue."
@@ -77,7 +76,8 @@ scrobbling when a connection is reestablished."
   (setf *last-seek* (funcall *song-time-fn*)))
 
 (defun update-song-info ()
-  "Set *SONG-INFO* to a list of (track artist duration) via *SONG-INFO-FN*."
+  "Set *SONG-INFO* to a list of (track artist duration timestamp) via
+*SONG-INFO-FN* and UNIX-TIMESTAMP."
   (setf *song-info* (append (funcall *song-info-fn*)
                             (list (format nil "~d" (unix-timestamp))))))
 
@@ -93,11 +93,11 @@ successful, remove the song from the cache and persist it to disk."
     ;; Did we get JSON or did we get a logged error?
     (if (typep result 'st-json:jso)
         (remove-from-cache)
-        (error 'network-outage))))
+        (error 'scrobble-error))))
 
 (defun scrobbler-init ()
-  "Ensure needed variables are set, restore the cache if present and restore
-or acquire a session key for scrobbling."
+  "Ensure needed variables are set, restore the cache and settings if present
+and, if scrobbling is enabled, restore or acquire a session key."
   (unless (and *song-info-fn* *song-time-fn*)
     (error "You need to define *song-time-fn* and *song-info-fn*! ~
 Consult the docs..."))
@@ -109,11 +109,11 @@ Consult the docs..."))
     (get-session-key)))
 
 (defun scrobbler-loop ()
-  "Loop indefinitely, scrobbling as many songs as possible unless the network
-is unavailable. Then sleep until at least *SCROBBLE-COUNT* songs are queued."
+  "Loop indefinitely. If there are at least *SCROBBLE-COUNT* songs queued,
+scrobble until the queue is empty or errors occur. Sleep 2 minutes and repeat."
   (loop
      (when (>= (queue-count *scrobble-cache*) *scrobble-count*)
        (handler-case (loop until (queue-empty-p *scrobble-cache*)
                         do (attempt-scrobble))
-         (network-outage () nil)))
+         (scrobble-error () nil)))
      (sleep 120)))

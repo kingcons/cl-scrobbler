@@ -71,11 +71,10 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
 
 (defun md5sum (string)
   "Creates an MD5 byte-array of STRING and prints it as lower-case hexadecimal."
-  (format nil "~(~{~2,'0X~}~)"
-          (map 'list #'identity (md5:md5sum-sequence string))))
+  (format nil "~(~{~2,'0X~}~)" (coerce (md5:md5sum-sequence string) 'list)))
 
 (defun config-file (name)
-  "Return a pathname for NAME under *CONFIG-DIR*."
+  "Return a pathname for NAME under *CONFIG-DIR* ensuring the directory exists."
   (let ((result (merge-pathnames name *config-dir*)))
     (ensure-directories-exist result)
     result))
@@ -115,9 +114,9 @@ string and, if VAL is a list, append C-style array indices to SYM."
                     collecting (concatenate 'string name value))))
     (md5sum (apply #'concatenate 'string (append ordered `(,*api-secret*))))))
 
-(defun lastfm-call (params &key (type :api) (method :get))
-  "Make an HTTP request to the URL denoted by TYPE with the specified METHOD
-and PARAMS. PARAMS should be a list of dotted pairs."
+(defun lastfm-call (params &key (method :get))
+  "Make an HTTP request to the *API-URL* with the specified METHOD and PARAMS.
+PARAMS should be a list of dotted pairs."
   (drakma:http-request *api-url* :method method
                        :parameters (append '(("format" . "json")) params)))
 
@@ -145,9 +144,8 @@ supply a docstring and METHOD determines the HTTP method to use."
            (multiple-value-bind (response status headers)
              (lastfm-call (append ,params `(("api_sig" . ,,sig)))
                           :method ,method)
-             (let* ((json (read-json response))
-                    (result (progn ,@body)))
+             (let ((json (read-json response)))
                (when (getjso "error" json)
                  (error 'lastfm-server-error
                         :message (error-message (getjso "error" json))))
-               (values result status headers response))))))))
+               (values (progn ,@body) status headers response))))))))

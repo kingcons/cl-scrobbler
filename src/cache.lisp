@@ -25,6 +25,6 @@
   (persist-cache))
 
 (defun remove-from-cache ()
-  "Remove the last scrobble from the queue and persist it."
+  "Remove the last scrobble from the cache and persist the cache."
   (dequeue *scrobble-cache*)
   (persist-cache))

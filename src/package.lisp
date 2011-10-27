@@ -13,7 +13,6 @@
            #:*song-info-fn*
            #:*song-time-fn*
            #:*scrobble-count*
-           #:*now-playing-p*
            #:update-last-seek
            #:update-song-info
            #:update-skipped
