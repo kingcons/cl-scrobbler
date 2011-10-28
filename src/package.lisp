@@ -1,4 +1,5 @@
 (defpackage #:cl-scrobbler
+  (:documentation "Homepage: <a href=\"http://github.com/redline6561/cl-scrobbler\">Github</a>")
   (:use #:cl)
   (:import-from #:st-json #:read-json
                           #:getjso)

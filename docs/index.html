@@ -1,0 +1,175 @@
+
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>API for CL-SCROBBLER</title>
+<style type="text/css" media="all">
+body {margin: 0 2em .5em 2em;font-family: Verdana,Arial,sans-serif;}
+.package {background: #efefef; 
+          padding: 1.5em 0 1em 0; 
+          text-align: center; 
+          font-size: x-large;}
+.definition {background: #efefef; padding: .3em 1em;}
+a.symbolname, a:visited.symbolname {font-weight: bold;}
+.initargs {font-size: small;}
+.slots {font-size: small;}
+div.label {border-bottom: 1px solid #efefef; margin-bottom: .5em}
+.symboldecl, .footer {margin: 0 2em 2em 2em;}
+.symbolname {font-weight: bold; color: gray;}
+.symboltype {font-style: italic;margin-left: 1.5em; font-size: smaller;}
+.documentation {color: gray; font-family: Fixed,monospace;margin: 0 0 1.5em 0.5em;}
+.packagedocumentation {color: gray; 
+                       font-family: Fixed,monospace;
+                       margin: 0 0 1.5em 0; 
+                       border: 1px solid #efefef; 
+                       padding-left: 1.5em;}
+.symbolcomments span {font-weight: bold;}
+.footer {font-size: x-small; text-align: right; margin-top: 2em; padding-top: 1em; border-top: 1px solid gray;}
+.undocumented {color: red; font-weight: bold;}
+a, a:visited {font-weight: bold; color: gray; text-decoration: none; font-weight: normal;}
+a:hover {border-bottom: 1px solid gray; }
+.label {font-weight: bold; font-style: italic;color: gray;}
+.labeltitle {font-weight: bold; font-style: italic;color: gray; border: 1px solid #efefef; padding: .25em;margin-bottom: .5em}
+.frame {marin-top: 1.5em}
+.expander {border: 2px solid #efefef; color: gray; 
+           font-weight: bold; 
+           font-family: Fixed,monospace; 
+           margin-right: .25em; padding: 0 .25em;cursor: pointer;}
+</style>
+<script type="text/javascript">
+function expand (expander, id) {
+var text = expander.innerHTML;
+if (text == '-')
+{
+  expander.innerHTML = '+';
+  document.getElementById(id).style.display = 'none';
+}
+else
+{
+  expander.innerHTML = '-';
+  document.getElementById(id).style.display = '';
+}
+}</script></head>
+<body>
+<div class="package">
+<div class="definition">API for package: 
+<a class="symbolname" name="cl-scrobbler_package" href="#cl-scrobbler_package">cl-scrobbler</a></div></div>
+<div class="packagedocumentation">
+<pre>Homepage: <a href="http://github.com/redline6561/cl-scrobbler">Github</a></pre></div>
+<div class="frame">
+<div class="labeltitle">
+<span class="expander" onclick="expand(this, 'vars');">-</span>Variables</div>
+<div id="vars">
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="*config-dir*_vars" href="#*config-dir*_vars">*config-dir*</a>: 
+<span class="value">""</span>
+<span class="symboltype">variable</span></div>
+<div class="documentation">
+<pre>The directory to store the session key, scrobble cache and log in.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="*scrobble-count*_vars" href="#*scrobble-count*_vars">*scrobble-count*</a>: 
+<span class="value">5</span>
+<span class="symboltype">variable</span></div>
+<div class="documentation">
+<pre>The number of songs needed in the queue before an attempt to scrobble is
+made.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="*song-info-fn*_vars" href="#*song-info-fn*_vars">*song-info-fn*</a>: 
+<span class="value">NIL</span>
+<span class="symboltype">variable</span></div>
+<div class="documentation">
+<pre>This is a lambda or named function intended to take no arguments and return
+a list where the first element is the track name, the second is the artist and
+the third is the track length in seconds.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="*song-time-fn*_vars" href="#*song-time-fn*_vars">*song-time-fn*</a>: 
+<span class="value">NIL</span>
+<span class="symboltype">variable</span></div>
+<div class="documentation">
+<pre>This is a lambda or named function intended to take no arguments and return
+the current position in the track in seconds.</pre></div></div></div></div>
+<div class="frame">
+<div class="labeltitle">
+<span class="expander" onclick="expand(this, 'functions');">-</span>Functions</div>
+<div id="functions">
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="cache-contents_func" href="#cache-contents_func">cache-contents</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Get a copy of the contents of the *SCROBBLE-CACHE*.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="maybe-queue-scrobble_func" href="#maybe-queue-scrobble_func">maybe-queue-scrobble</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>When valid (as determined by VALID-SCROBBLE-P), add a song to the queue to be
+scrobbled. If there is a network failure, the track will be stored for later
+scrobbling when a connection is reestablished.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="scrobbler-init_func" href="#scrobbler-init_func">scrobbler-init</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Ensure needed variables are set, restore the cache and settings if present
+and, if scrobbling is enabled, restore or acquire a session key.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="scrobbler-loop_func" href="#scrobbler-loop_func">scrobbler-loop</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Loop indefinitely. If there are at least *SCROBBLE-COUNT* songs queued,
+scrobble until the queue is empty or errors occur. Sleep 2 minutes and repeat.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="set-now-playing_func" href="#set-now-playing_func">set-now-playing</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Update the now playing status when *NOW-PLAYING-P* is non-NIL.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="toggle-now-playing_func" href="#toggle-now-playing_func">toggle-now-playing</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Toggle whether or not the Now Playing status is updated with each song.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="toggle-scrobbling_func" href="#toggle-scrobbling_func">toggle-scrobbling</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Toggle whether or not new songs are added to the queue.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="update-last-seek_func" href="#update-last-seek_func">update-last-seek</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Set *LAST-SEEK* to the current track position via *SONG-TIME-FN*.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="update-skipped_func" href="#update-skipped_func">update-skipped</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Set *SKIPPED* to the current track position via *SONG-TIME-FN*.</pre></div></div>
+<div class="symboldecl">
+<div class="definition">
+<a class="symbolname" name="update-song-info_func" href="#update-song-info_func">update-song-info</a>
+<span class="lambdalist"></span>
+<span class="symboltype">function</span></div>
+<div class="documentation">
+<pre>Set *SONG-INFO* to a list of (track artist duration timestamp) via
+*SONG-INFO-FN* and UNIX-TIMESTAMP.</pre></div></div></div></div>
+<div class="footer">Generated by: 
+<a href="http://common-lisp.net/project/cl-api">CL-API</a></div></body></html>
