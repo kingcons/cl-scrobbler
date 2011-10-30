@@ -4,7 +4,7 @@
   :version "0.4"
   :license "BSD"
   :author "Brit Butler <redline6561@gmail.com>"
-  :depends-on (#:md5 #:drakma #:st-json #:cl-store #:arnesi)
+  :depends-on (#:md5 #:flexi-streams #:drakma #:st-json #:cl-store #:arnesi)
   :components ((:module src
                 :serial t
                 :components ((:file "package")

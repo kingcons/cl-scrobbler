@@ -79,7 +79,7 @@ scrobbling when a connection is reestablished."
   "Set *SONG-INFO* to a list of (track artist duration timestamp) via
 *SONG-INFO-FN* and UNIX-TIMESTAMP."
   (setf *song-info* (append (funcall *song-info-fn*)
-                            (list (format nil "~d" (unix-timestamp))))))
+                            (list (princ-to-string (unix-timestamp))))))
 
 (defun update-skipped ()
   "Set *SKIPPED* to the current track position via *SONG-TIME-FN*."

@@ -5,6 +5,9 @@ Ensure that error code 9 (bad session) is specially handled.
 Ensure that error codes other than 9,11,16 do not result in re-sent scrobbles?
 -- Last.fm seems to suggest other errors indicate malformed requests.
 
+BUGS:
+Fix DNS reacquisition on suspend/resume network hop.
+
 Ideas:
 Add conditions/error-handling for:
 -- get-api-keys, request-user-auth, lastfm-call, authorize-scrobbling

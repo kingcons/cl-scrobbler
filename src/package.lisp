@@ -10,6 +10,8 @@
                          #:queue-empty-p
                          #:enqueue
                          #:dequeue)
+  (:import-from #:flexi-streams
+                #:string-to-octets)
   (:export #:*config-dir*
            #:*song-info-fn*
            #:*song-time-fn*

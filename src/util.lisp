@@ -71,7 +71,8 @@ unix epoch (1/1/1970). Should return (values sec nano-sec)."
 
 (defun md5sum (string)
   "Creates an MD5 byte-array of STRING and prints it as lower-case hexadecimal."
-  (format nil "~(~{~2,'0X~}~)" (coerce (md5:md5sum-sequence string) 'list)))
+  (let ((string (string-to-octets string :external-format :utf-8)))
+    (format nil "~(~{~2,'0X~}~)" (coerce (md5:md5sum-sequence string) 'list))))
 
 (defun config-file (name)
   "Return a pathname for NAME under *CONFIG-DIR* ensuring the directory exists."
