@@ -1,9 +1,7 @@
-;;;; cl-scrobbler.asd
-
-(asdf:defsystem #:cl-scrobbler
+(defsystem #:cl-scrobbler
   :name "cl-scrobbler"
   :description "A library for scrobbling to last.fm"
-  :version "0.1"
+  :version "0.4"
   :license "BSD"
   :author "Brit Butler <redline6561@gmail.com>"
   :depends-on (#:md5 #:drakma #:st-json #:cl-store #:arnesi)
@@ -15,4 +13,16 @@
                              (:file "errors")
                              (:file "util")
                              (:file "auth")
-                             (:file "scrobble")))))
+                             (:file "scrobble"))))
+  :in-order-to ((test-op (load-op cl-scrobbler-tests)))
+  :perform (test-op :after (op c)
+                    (funcall (intern "RUN!" :cl-scrobbler-tests))))
+
+(defsystem #:cl-scrobbler-tests
+  :depends-on (cl-scrobbler fiveam)
+  :pathname "tests/"
+  :components ((:file "tests")))
+
+(defmethod operation-done-p ((op test-op)
+                             (c (eql (find-system :cl-scrobbler))))
+  (values nil))
